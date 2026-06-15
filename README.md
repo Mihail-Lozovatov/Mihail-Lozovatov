@@ -33,9 +33,3 @@
    └── Email:    your@email.com
 
    > SYSTEM READY. AWAITING COMMANDS.
-   ```markdown
-| <!-- --> | <!-- --> |
-|----------|----------|
-| ![Your GitHub stats](https://github-readme-stats.vercel.app/api?username=ваш_логин&show_icons=true&theme=dark&text_bright=00ff00&title_color=00ff00&icon_color=00ff00&bg_color=000000) | ![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username=Mihail-Lozovatov&layout=compact&theme=dark&text_color=00ff00&title_color=00ff00&bg_color=000000) |
-
-![Visitor Count](https://visitor-badge.glitch.me/badge?page_id=вMihail-Lozovatov.Mihail-Lozovatov)
