@@ -4,7 +4,11 @@
   └─────────────────────────────────────────────────────────────────┘
 -->
 
+<p align="center">
+  <img src="rotating_cube.gif" alt="Rotating ASCII Cube" />
+</p>
 ```ascii
+
    ╔═══════════════════════════════════════════════════════════════╗
    ║                  [ SYSTEM BOOT v2.0 ]                         ║
    ║              Machine Learning & Data Science                  ║
