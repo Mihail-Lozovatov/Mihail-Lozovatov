@@ -1,0 +1,170 @@
+import cv2
+import gdown
+import numpy as np
+from matplotlib import pyplot as plt
+%matplotlib inline
+
+def blur_face(img):
+    (h, w) = img.shape[:2]
+    dW = int(w / 3.0)
+    dH = int(h / 3.0)
+    if dW % 2 == 0:
+        dW -= 1
+    if dH % 2 == 0:
+        dH -= 1
+    return cv2.GaussianBlur(img, (dW, dH), 0)
+
+def draw_glasses(image, left_eye, right_eye, eye_radius):
+    lx, ly = left_eye
+    rx, ry = right_eye
+    eye_distance = abs(rx - lx)
+    lens_width = int(eye_distance * 0.8)
+    lens_height = int(eye_radius * 2.5)
+
+    # Левая линза
+    cv2.ellipse(image, (lx, ly), (lens_width//2, lens_height//2), 0, 0, 360, (0, 0, 0), -1)
+    cv2.ellipse(image, (lx, ly), (lens_width//2 - 3, lens_height//2 - 3), 0, 0, 360, (100, 100, 100), -1)
+    cv2.ellipse(image, (lx, ly), (lens_width//2, lens_height//2), 0, 0, 360, (255, 255, 255), 2)
+
+    # Правая линза
+    cv2.ellipse(image, (rx, ry), (lens_width//2, lens_height//2), 0, 0, 360, (0, 0, 0), -1)
+    cv2.ellipse(image, (rx, ry), (lens_width//2 - 3, lens_height//2 - 3), 0, 0, 360, (100, 100, 100), -1)
+    cv2.ellipse(image, (rx, ry), (lens_width//2, lens_height//2), 0, 0, 360, (255, 255, 255), 2)
+
+    # Перемычка
+    bridge_x1 = lx + lens_width//2 - 5
+    bridge_x2 = rx - lens_width//2 + 5
+    bridge_y = ly - 5
+    cv2.rectangle(image, (bridge_x1, bridge_y - 3), (bridge_x2, bridge_y + 8), (0, 0, 0), -1)
+    cv2.rectangle(image, (bridge_x1, bridge_y - 3), (bridge_x2, bridge_y + 8), (255, 255, 255), 1)
+
+    # Дужки
+    cv2.line(image, (lx - lens_width//2, ly - 10), (lx - lens_width//2 - 30, ly - 20), (0, 0, 0), 5)
+    cv2.line(image, (lx - lens_width//2, ly - 10), (lx - lens_width//2 - 30, ly - 20), (255, 255, 255), 2)
+    cv2.line(image, (rx + lens_width//2, ry - 10), (rx + lens_width//2 + 30, ry - 20), (0, 0, 0), 5)
+    cv2.line(image, (rx + lens_width//2, ry - 10), (rx + lens_width//2 + 30, ry - 20), (255, 255, 255), 2)
+
+    # Блики
+    cv2.ellipse(image, (lx - 10, ly - 8), (8, 12), 0, 0, 360, (255, 255, 255), -1)
+    cv2.ellipse(image, (rx - 10, ry - 8), (8, 12), 0, 0, 360, (255, 255, 255), -1)
+
+    return image
+
+face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
+eye_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_eye_tree_eyeglasses.xml")
+gdown.download('https://avatars.mds.yandex.net/i?id=584f276f9501eba0491a112719985a12c31a31b3-5221158-images-thumbs&n=13', 'dicaprio.jpg', quiet=False)
+
+ORIGINAL_IMG = cv2.imread('./dicaprio.jpg')
+img_oval = ORIGINAL_IMG.copy()
+
+faces = face_cascade.detectMultiScale(ORIGINAL_IMG, scaleFactor=1.3, minNeighbors=3, minSize=(50, 50))
+
+for (x, y, w, h) in faces:
+    center_face = (x + w // 2, y + h // 2)
+    axes_face = (w // 2, h // 2)
+    cv2.ellipse(img_oval, center_face, axes_face, 0, 0, 360, (0, 255, 0), 3)
+
+plt.figure(figsize=(10, 8))
+plt.imshow(cv2.cvtColor(img_oval, cv2.COLOR_BGR2RGB))
+plt.title('Часть 1: Овал лица')
+plt.axis('off')
+plt.show()
+
+ОВАЛ ЛИЦА
+
+img_glasses = ORIGINAL_IMG.copy()
+
+faces = face_cascade.detectMultiScale(ORIGINAL_IMG, scaleFactor=1.3, minNeighbors=3, minSize=(50, 50))
+
+for (x, y, w, h) in faces:
+
+    face_roi = ORIGINAL_IMG[y:y+h, x:x+w]
+    gray_face = cv2.cvtColor(face_roi, cv2.COLOR_BGR2GRAY)
+    eyes = eye_cascade.detectMultiScale(gray_face, scaleFactor=1.1, minNeighbors=5, minSize=(15, 15))
+
+    if len(eyes) >= 2:
+        eyes = sorted(eyes, key=lambda e: e[0])
+        (ex1, ey1, ew1, eh1) = eyes[0]
+        (ex2, ey2, ew2, eh2) = eyes[1]
+
+        left_center = (x + ex1 + ew1 // 2, y + ey1 + eh1 // 2)
+        right_center = (x + ex2 + ew2 // 2, y + ey2 + eh2 // 2)
+        eye_radius = (ew1 + eh1) // 3
+
+        img_glasses = draw_glasses(img_glasses, left_center, right_center, eye_radius)
+
+plt.figure(figsize=(10, 8))
+plt.imshow(cv2.cvtColor(img_glasses, cv2.COLOR_BGR2RGB))
+plt.title('Часть 2: Только очки на глазах')
+plt.axis('off')
+plt.show()
+
+ОЧКИ НА ГЛАЗАХ
+
+
+img_result = ORIGINAL_IMG.copy()
+
+faces = face_cascade.detectMultiScale(ORIGINAL_IMG, scaleFactor=1.3, minNeighbors=3, minSize=(50, 50))
+
+# Координаты глаз
+left_eye_coords = None
+right_eye_coords = None
+eye_radius_value = None
+face_coords = None
+
+for (x, y, w, h) in faces:
+    face_coords = (x, y, w, h)
+
+    # Поиск глаз на ОРИГИНАЛЕ
+    face_roi = ORIGINAL_IMG[y:y+h, x:x+w]
+    gray_face = cv2.cvtColor(face_roi, cv2.COLOR_BGR2GRAY)
+    eyes = eye_cascade.detectMultiScale(gray_face, scaleFactor=1.1, minNeighbors=5, minSize=(15, 15))
+
+    if len(eyes) >= 2:
+        eyes = sorted(eyes, key=lambda e: e[0])
+        (ex1, ey1, ew1, eh1) = eyes[0]
+        (ex2, ey2, ew2, eh2) = eyes[1]
+
+        left_eye_coords = (x + ex1 + ew1 // 2, y + ey1 + eh1 // 2)
+        right_eye_coords = (x + ex2 + ew2 // 2, y + ey2 + eh2 // 2)
+        eye_radius_value = (ew1 + eh1) // 3
+
+# Если нашли лицо и глаза
+if face_coords is not None and left_eye_coords is not None:
+    x, y, w, h = face_coords
+
+    face_mask = np.zeros((ORIGINAL_IMG.shape[0], ORIGINAL_IMG.shape[1]), dtype=np.uint8)
+
+    # Уменьшаем границы овала:
+    # - ширина: на 15% уже
+    # - высота: на 20% ниже
+    center_face = (x + w // 2, y + h // 2)
+    axes_face = (int(w * 0.42), int(h * 0.55))  # Уменьшенные размеры
+    cv2.ellipse(face_mask, center_face, axes_face, 0, 0, 360, 255, -1)
+
+    eyes_mask = np.zeros((ORIGINAL_IMG.shape[0], ORIGINAL_IMG.shape[1]), dtype=np.uint8)
+
+    left_eye_axes = (eye_radius_value + 8, int((eye_radius_value + 8) * 0.8))
+    right_eye_axes = (eye_radius_value + 8, int((eye_radius_value + 8) * 0.8))
+    cv2.ellipse(eyes_mask, left_eye_coords, left_eye_axes, 0, 0, 360, 255, -1)
+    cv2.ellipse(eyes_mask, right_eye_coords, right_eye_axes, 0, 0, 360, 255, -1)
+
+    blur_region = cv2.bitwise_and(face_mask, cv2.bitwise_not(eyes_mask))
+
+    img_blurred_full = blur_face(ORIGINAL_IMG)
+
+    blur_region_inv = cv2.bitwise_not(blur_region)
+
+    face_blurred = cv2.bitwise_and(img_blurred_full, img_blurred_full, mask=blur_region)
+    rest_original = cv2.bitwise_and(img_result, img_result, mask=blur_region_inv)
+
+    img_result = cv2.add(face_blurred, rest_original)
+
+plt.figure(figsize=(10, 8))
+plt.imshow(cv2.cvtColor(img_result, cv2.COLOR_BGR2RGB))
+plt.title('Часть 3: Размытие лица (овальное, уменьшенные границы)')
+plt.axis('off')
+plt.show()
+
+МАСКА
+
