@@ -70,7 +70,6 @@ plt.title('Часть 1: Овал лица')
 plt.axis('off')
 plt.show()
 
-ОВАЛ ЛИЦА
 
 img_glasses = ORIGINAL_IMG.copy()
 
@@ -98,8 +97,6 @@ plt.imshow(cv2.cvtColor(img_glasses, cv2.COLOR_BGR2RGB))
 plt.title('Часть 2: Только очки на глазах')
 plt.axis('off')
 plt.show()
-
-ОЧКИ НА ГЛАЗАХ
 
 
 img_result = ORIGINAL_IMG.copy()
@@ -166,5 +163,4 @@ plt.title('Часть 3: Размытие лица (овальное, умень
 plt.axis('off')
 plt.show()
 
-МАСКА
 
